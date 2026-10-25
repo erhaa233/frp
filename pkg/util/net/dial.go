@@ -50,6 +50,8 @@ func DialHookWebsocket(protocol string, host string) libnet.AfterHookFunc {
 		// (e.g. API gateways/reverse proxies) UTF-8-validate the default text
 		// frames and close the connection on invalid bytes.
 		conn.PayloadType = websocket.BinaryFrame
-		return ctx, conn, nil
+		// Bound the close: the peer may have stopped reading, and the
+		// websocket close frame write would then block forever.
+		return ctx, WrapBoundedCloseConn(conn, websocketCloseTimeout), nil
 	}
 }
